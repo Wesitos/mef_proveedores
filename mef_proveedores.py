@@ -80,3 +80,12 @@ class Page(object):
                 else:
                     break
         return iterable(self)
+
+if __name__ == "__main__":
+    #Pagina principal
+    home = Page()
+    year_list = home.get("year")
+    for year in year_list:
+        proveedor_list = year_list.get("proveedor")
+        for proveedor in proveedor_list:
+            print proveedor
