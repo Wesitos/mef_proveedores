@@ -1,3 +1,6 @@
+import requests as req
+from bs4 import BeautifulSoup
+
 class Row(object):
     def __init__(self, state, row):
         cells = row.find_all("td")
