@@ -89,6 +89,6 @@ if __name__ == "__main__":
     home = Page()
     year_list = home.get("year")
     for year in year_list:
-        proveedor_list = year_list.get("proveedor")
+        proveedor_list = year_list.get("proveedor", year)
         for proveedor in proveedor_list:
             print proveedor
