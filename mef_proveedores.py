@@ -11,6 +11,8 @@ class Row(object):
         
     def __str__(self):
         return '<Row nombre="%s">'%self.nombre
+
+    __repr__ = __str__
     
 class Page(object):
     def __init__(self, html=None):
