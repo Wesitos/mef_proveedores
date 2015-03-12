@@ -101,9 +101,10 @@ class Page(object):
 
 if __name__ == "__main__":
     f = open("salida_pliegos_proveedores", "w")
-    def done(prov, year, sector, pliego):
-        root = "%s/%s/%s/%s"%(prov.nombre, year.nombre, sector.nombre, pliego.nombre)
-        name = " > %f"%pliego.monto
+    def done(prov, year, gob, sector, pliego):
+        root = "%s/%s/%s/%s/%s"%(prov.nombre, year.nombre, gob.nombre,
+                                 sector.nombre, pliego.nombre)
+        name = ">%f"%pliego.monto
         print(root + name, file=f)
 
 
@@ -113,10 +114,12 @@ if __name__ == "__main__":
     for prov in prov_page:
         year_page = prov_page.get("year", prov)
         for year in year_page:
-            sector_page = year_page.get("sector", year)
-            for sector in sector_page:
-                pliego_page = sector_page.get("pliego", sector)
-                for pliego in pliego_page:
-                    done(prov,year,sector,pliego)
+            gob_page = year_page.get("gobierno",year)
+            for gob in gob_page:
+                sector_page = year_page.get("sector", gob)
+                for sector in sector_page:
+                    pliego_page = sector_page.get("pliego", sector)
+                    for pliego in pliego_page:
+                        done(prov, year, gob, sector, pliego)
 
     f.close()
