@@ -116,7 +116,7 @@ if __name__ == "__main__":
         for year in year_page:
             gob_page = year_page.get("gobierno",year)
             for gob in gob_page:
-                sector_page = year_page.get("sector", gob)
+                sector_page = gob_page.get("sector", gob)
                 for sector in sector_page:
                     pliego_page = sector_page.get("pliego", sector)
                     for pliego in pliego_page:
