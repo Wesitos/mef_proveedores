@@ -15,12 +15,13 @@ class Row(object):
     __repr__ = __str__
     
 class Page(object):
-    def __init__(self, html=None):
+    def __init__(self, html=None, post_form_data=None):
         if not html:
             self.form_data = None
             html = self.navigate({}) 
         self.html = html
         self.soup = BeautifulSoup(html)
+        self.post_form_data = post_form_data or {}
         self.form_data = self._set_form_data()
         self.state = self._set_state()
     
@@ -56,7 +57,7 @@ class Page(object):
             r = req.post(url, post_form_data)
             #print post_form_data
             if r.status_code == req.codes.ok:
-                return Page(r.text)
+                return Page(r.text, post_form_data)
             elif r.status_code == req.codes.server_error:
                 return None
         
