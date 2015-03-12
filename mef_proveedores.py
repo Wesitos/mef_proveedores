@@ -84,6 +84,12 @@ class Page(object):
                     break
         return iterable(self)
 
+    def __getitem__(self, i):
+        iterable = self.__iter__()
+        for k in range(i):
+            next(iterable)
+        return next(iterable)
+
 if __name__ == "__main__":
     #Pagina principal
     home = Page()
