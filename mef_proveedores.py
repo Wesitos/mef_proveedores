@@ -89,9 +89,13 @@ class Page(object):
 
     def __getitem__(self, i):
         iterable = self.__iter__()
-        for k in range(i):
-            next(iterable)
-        return next(iterable)
+        for _ in range(i+1):
+            try:
+                item = next(iterable)
+            except StopIteration:
+                raise IndexError
+        return item
+
 
 if __name__ == "__main__":
     #Pagina principal
