@@ -2,6 +2,7 @@ from __future__ import print_function
 import requests as req
 from bs4 import BeautifulSoup
 import io
+import logging
 
 class Row(object):
     def __init__(self, state, row):
@@ -122,7 +123,6 @@ if __name__ == "__main__":
         root = u"%s/%s/%s"%(prov, year, pliego)
         name = u">%f"%pliego.monto
         msg = root + name
-        print(msg)
         print(msg, file=f)
 
 
@@ -130,10 +130,10 @@ if __name__ == "__main__":
     home_page = Page()
     prov_page = home_page.get("proveedor")
     for prov in prov_page:
-        print("/%s"%prov)
+        logging.info("/%s"%prov)
         year_page = prov_page.get("year", prov)
         for year in year_page:
-            print("/%s/%s"%(prov, year))
+            logging.info("/%s/%s"%(prov, year))
             pliego_page = year_page.get("pliego", year)
             for pliego in pliego_page:
                 done(prov, year, pliego)
