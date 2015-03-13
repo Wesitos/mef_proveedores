@@ -3,6 +3,15 @@ import requests as req
 from bs4 import BeautifulSoup
 import io
 import logging
+import time
+
+logger = logging.getLogger()
+logger.handlers = []
+fhandler = logging.FileHandler(filename='mef_proveedores.log', mode='a')
+formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+fhandler.setFormatter(formatter)
+logger.addHandler(fhandler)
+logger.setLevel(logging.INFO)
 
 class Row(object):
     def __init__(self, state, row):
@@ -92,7 +101,28 @@ class Page(object):
             form_data.update({"grp1":selected.select_id})
         elif selected:
             form_data.update({"grp1":selected})
-        return self.navigate(form_data)
+        while True:
+            try:
+                r = self.navigate(form_data)
+            except req.exceptions.Timeout:
+                logging.warning("Timeout Error. Page: %s, Row: %s"(self, selected))
+            except req.exceptions.ConnectionError as error:
+                errno = error.errno
+                err_msg = "ConnectionError"
+                if errno == 101:
+                    err_msg += (": Esta conectado a internet?")
+                logging.warning(err_msg)
+                # Esperemos antes de intentar de nuevo
+                time.sleep(0.5)
+                continue
+            except Exception as e:
+                logging.exception(str(e))
+                time.sleep(0.5)
+                continue
+            else:
+                break
+
+        return r
 
     def __iter__(self):
         def iterable(self):
@@ -115,7 +145,6 @@ class Page(object):
             except StopIteration:
                 raise IndexError
         return item
-
 
 if __name__ == "__main__":
     f = io.open("salida_pliegos_proveedores2", "w")
