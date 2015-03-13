@@ -23,8 +23,12 @@ class Row(object):
     def __str__(self):
         return unicode(self).encode("utf-8")
 
-    __repr__ = __str__
-    
+class NoPage(object):
+    def __iter__():
+        return []
+    def __nonzero__(self):
+        return False
+
 class Page(object):
     def __init__(self, html=None, post_form_data=None):
         if not html:
@@ -49,10 +53,15 @@ class Page(object):
         data = (Row(self.state, row) for row in tabla.find_all("tr"))
         return data
     
+
     def next_page(self):
-        form_data = {"Pager1:BtnAdelante": ">"}
-        return self.navigate(form_data)
-    
+        paginable = self.soup.find("input", {"name":"Pager1:BtnAdelante"})
+        if paginable:
+            form_data = {"Pager1:BtnAdelante": ">"}
+            return self.navigate(form_data)
+        else:
+            return NoPage()
+
     def navigate(self, form_data):
         """funcion para hacer las peticiones"""
         url = "http://apps5.mineco.gob.pe/proveedor/PageTop.aspx"
@@ -70,8 +79,8 @@ class Page(object):
             if r.status_code == req.codes.ok:
                 return Page(r.text, post_form_data)
             elif r.status_code == req.codes.server_error:
-                return None
-        
+                return NoPage()
+
     def get(self, group_name, selected=None):
         """Ayuda a navegar en el buscador de proveedores"""
         lista_names = [ "home", "year", "gobierno", "sector", "pliego", "municipio",
