@@ -1,7 +1,7 @@
 from __future__ import print_function
 import requests as req
 from bs4 import BeautifulSoup
-
+import io
 
 class Row(object):
     def __init__(self, state, row):
@@ -117,26 +117,25 @@ class Page(object):
 
 
 if __name__ == "__main__":
-    f = open("salida_pliegos_proveedores", "w")
-    def done(prov, year, gob, sector, pliego):
-        root = "%s/%s/%s/%s/%s"%(prov.nombre, year.nombre, gob.nombre,
-                                 sector.nombre, pliego.nombre)
-        name = ">%f"%pliego.monto
-        print(root + name, file=f)
+    f = io.open("salida_pliegos_proveedores2", "w")
+    def done(prov, year, pliego):
+        root = u"%s/%s/%s"%(prov, year, pliego)
+        name = u">%f"%pliego.monto
+        msg = root + name
+        print(msg)
+        print(msg, file=f)
 
 
     #Pagina principal
     home_page = Page()
     prov_page = home_page.get("proveedor")
     for prov in prov_page:
+        print("/%s"%prov)
         year_page = prov_page.get("year", prov)
         for year in year_page:
-            gob_page = year_page.get("gobierno",year)
-            for gob in gob_page:
-                sector_page = gob_page.get("sector", gob)
-                for sector in sector_page:
-                    pliego_page = sector_page.get("pliego", sector)
-                    for pliego in pliego_page:
-                        done(prov, year, gob, sector, pliego)
+            print("/%s/%s"%(prov, year))
+            pliego_page = year_page.get("pliego", year)
+            for pliego in pliego_page:
+                done(prov, year, pliego)
 
     f.close()
