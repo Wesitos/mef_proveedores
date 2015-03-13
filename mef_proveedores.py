@@ -7,12 +7,21 @@ class Row(object):
     def __init__(self, state, row):
         cells = row.find_all("td")
         self.select_id = cells[0].find("input").attrs["value"]
-        self.nombre = cells[1].text.encode('utf-8').strip()
+        self.nombre = cells[1].text.strip()
         self.monto = float(cells[2].text.replace(',',''))
         self.state = state
         
+    def __repr__(self):
+        return '<Row nombre="%s">'%unicode(self)
+
+    def __unicode__(self):
+        prev,name = self.nombre.split(":")
+        prev = prev[1:].strip()
+        label = ":".join([prev,name])
+        return label
+
     def __str__(self):
-        return '<Row nombre="%s">'%self.nombre
+        return unicode(self).encode("utf-8")
 
     __repr__ = __str__
     
