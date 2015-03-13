@@ -10,7 +10,7 @@ class Row(object):
         self.nombre = cells[1].text.strip()
         self.monto = float(cells[2].text.replace(',',''))
         self.state = state
-        
+
     def __repr__(self):
         return '<Row nombre="%s">'%unicode(self)
 
@@ -33,26 +33,25 @@ class Page(object):
     def __init__(self, html=None, post_form_data=None):
         if not html:
             self.form_data = None
-            html = self.navigate({}) 
+            html = self.navigate({})
         self.html = html
         self.soup = BeautifulSoup(html)
         self.post_form_data = post_form_data or {}
         self.form_data = self._set_form_data()
         self.state = self._set_state()
-    
+
     def _set_state(self):
         return self.form_data["__VIEWSTATE"]
-    
+
     def _set_form_data(self):
         inputs = filter(lambda e: e.get("type") not in ("submit","radio"), self.soup.find_all("input"))
         return {input_el.attrs["name"]:input_el.attrs.setdefault("value", None) for input_el in inputs}
-    
+
     def rows(self):
         """Devuelve un iterador sobre la data de la tabla"""
         tabla = self.soup.find(class_="Data")
         data = (Row(self.state, row) for row in tabla.find_all("tr"))
         return data
-    
 
     def next_page(self):
         paginable = self.soup.find("input", {"name":"Pager1:BtnAdelante"})
@@ -72,7 +71,7 @@ class Page(object):
             post_form_data = self.form_data.copy()
             post_form_data.update(form_data)
             ant_agrupacion = post_form_data["hAntAgrupacion"]
-            historico = post_form_data["hHistorico"] 
+            historico = post_form_data["hHistorico"]
             post_form_data.update({"hHistorico": historico + '/' + ant_agrupacion if historico[-1] != ant_agrupacion else historico})
             r = req.post(url, post_form_data)
             #print post_form_data
@@ -89,18 +88,18 @@ class Page(object):
         if not selected:
             selected = next(iter(self))
         if isinstance(selected, Row):
-            form_data.update({"grp1":selected.select_id})        
+            form_data.update({"grp1":selected.select_id})
         elif selected:
             form_data.update({"grp1":selected})
         return self.navigate(form_data)
-    
+
     def __iter__(self):
         def iterable(self):
             page = self
             while True:
                 for row in page.rows():
                     yield row
-                next_page = self.next_page()   
+                next_page = self.next_page()
                 if next_page:
                     page = next_page
                 else:
