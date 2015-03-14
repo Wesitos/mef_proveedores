@@ -175,6 +175,17 @@ class Page(object):
                 raise IndexError
         return item
 
+def get_prov(ruc, btn="year"):
+    page = Page().get("proveedor").search_ruc(ruc)
+    if page:
+        rows = page.rows()
+        filtr_nombre = [row for row in rows if ruc in row.nombre]
+        if filtr_nombre:
+            selected = filtr_nombre[0]
+            page = page.get(btn, selected)
+            return page
+    return NoPage(page.html)
+
 if __name__ == "__main__":
     f = io.open("salida_pliegos_proveedores2", "w")
     def done(prov, year, pliego):
