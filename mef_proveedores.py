@@ -93,6 +93,13 @@ class Page(object):
                     return page
             return NoPage(r.text)
 
+    def search_ruc(self, ruc):
+        """Funcion para realizar busqueda por ruc"""
+        form_data = {
+            "__EVENTTARGET": "BtnBuscarRUC",
+            "TxtBuscar": ruc,
+        }
+        return self.navigate(form_data)
 
     def get(self, group_name, selected=None):
         """Ayuda a navegar en el buscador de proveedores"""
