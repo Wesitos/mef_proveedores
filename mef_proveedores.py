@@ -14,12 +14,12 @@ logger.addHandler(fhandler)
 logger.setLevel(logging.INFO)
 
 class Row(object):
-    def __init__(self, state, row):
+    def __init__(self, form_data, row):
         cells = row.find_all("td")
         self.select_id = cells[0].find("input").attrs["value"]
         self.nombre = cells[1].text.strip()
         self.monto = float(cells[2].text.replace(',',''))
-        self.state = state
+        self.form_data = form_data
 
     def __repr__(self):
         return ('<Row nombre="%s">'%str(self))
@@ -36,13 +36,20 @@ class Row(object):
 class NoPage(object):
     def __init__(self, html=""):
         self.html = html
+        self.soup = BeautifulSoup(html)
+        self.form_data = self._set_form_data()
+
     def __iter__(self):
         return []
     def __nonzero__(self):
         return False
 
+    def _set_form_data(self):
+        inputs = filter(lambda e: e.get("type") not in ("submit","radio"), self.soup.find_all("input"))
+        return {input_el.attrs["name"]:input_el.attrs.setdefault("value", None) for input_el in inputs}
+
 class Page(object):
-    def __init__(self, html=None, post_form_data=None):
+    def __init__(self, html=None, post_form_data=None, path="/home"):
         if not html:
             self.form_data = None
             html = self.navigate({})
@@ -50,10 +57,8 @@ class Page(object):
         self.soup = BeautifulSoup(html)
         self.post_form_data = post_form_data or {}
         self.form_data = self._set_form_data()
-        self.state = self._set_state()
+        self.path = path
 
-    def _set_state(self):
-        return self.form_data["__VIEWSTATE"]
 
     def _set_form_data(self):
         inputs = filter(lambda e: e.get("type") not in ("submit","radio"), self.soup.find_all("input"))
@@ -62,7 +67,7 @@ class Page(object):
     def rows(self):
         """Devuelve un iterador sobre la data de la tabla"""
         tabla = self.soup.find(class_="Data")
-        data = (Row(self.state, row) for row in tabla.find_all("tr"))
+        data = (Row(self.form_data, row) for row in tabla.find_all("tr"))
         return data
 
     def next_page(self):
@@ -73,7 +78,7 @@ class Page(object):
         else:
             return NoPage()
 
-    def navigate(self, form_data):
+    def navigate(self, form_data, path=None):
         """funcion para hacer las peticiones"""
         url = "http://apps5.mineco.gob.pe/proveedor/PageTop.aspx"
         if not self.form_data:
@@ -86,10 +91,10 @@ class Page(object):
             historico = post_form_data["hHistorico"]
             post_form_data.update({"hHistorico": historico + '/' + ant_agrupacion if historico[-1] != ant_agrupacion else historico})
             r = req.post(url, post_form_data)
-            #print post_form_data
             if r.status_code == req.codes.ok:
-                page = Page(r.text, post_form_data)
-                if page.state != self.state:
+                path = path.strip() if path else self.path
+                page = Page(r.text, post_form_data, path)
+                if page.form_data != self.form_data:
                     return page
             return NoPage(r.text)
 
@@ -109,14 +114,17 @@ class Page(object):
         if not selected:
             selected = next(iter(self))
         if isinstance(selected, Row):
-            form_data.update({"grp1":selected.select_id})
+            selected = selected.select_id
         elif isinstance(select, basestring):
             if not "/" in selected:
                 selected += "/"
-            form_data.update({"grp1":selected})
+        form_data.update({"grp1":selected})
+        selected_id = selected.split("/")[0].strip()
+        params = ":" + selected_id if selected_id else ""
+        path = self.path + params + '/' + group_name
         while True:
             try:
-                r = self.navigate(form_data)
+                r = self.navigate(form_data, path)
             except req.exceptions.Timeout:
                 logging.warning("Timeout Error. Page: %s, Row: %s"(self, selected))
             except req.exceptions.ConnectionError as error:
