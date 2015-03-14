@@ -22,12 +22,12 @@ class Row(object):
         self.state = state
 
     def __repr__(self):
-        return '<Row nombre="%s">'%unicode(self)
+        return ('<Row nombre="%s">'%str(self))
 
     def __unicode__(self):
         prev,name = self.nombre.split(":")
         prev = prev[1:].strip()
-        label = ":".join([prev,name])
+        label = u":".join([prev,name])
         return label
 
     def __str__(self):
