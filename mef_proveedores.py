@@ -34,7 +34,9 @@ class Row(object):
         return unicode(self).encode("utf-8")
 
 class NoPage(object):
-    def __iter__():
+    def __init__(self, html=""):
+        self.html = html
+    def __iter__(self):
         return []
     def __nonzero__(self):
         return False
@@ -86,9 +88,11 @@ class Page(object):
             r = req.post(url, post_form_data)
             #print post_form_data
             if r.status_code == req.codes.ok:
-                return Page(r.text, post_form_data)
-            elif r.status_code == req.codes.server_error:
-                return NoPage()
+                page = Page(r.text, post_form_data)
+                if page.state != self.state:
+                    return page
+            return NoPage(r.text)
+
 
     def get(self, group_name, selected=None):
         """Ayuda a navegar en el buscador de proveedores"""
