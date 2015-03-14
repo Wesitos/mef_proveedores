@@ -144,7 +144,7 @@ class Page(object):
                 # Esperemos antes de intentar de nuevo
                 time.sleep(0.5)
                 continue
-            except Exception as e:
+            except req.exceptions.RequestException as e:
                 logging.exception(str(e))
                 time.sleep(0.5)
                 continue
