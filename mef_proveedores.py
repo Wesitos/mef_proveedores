@@ -99,7 +99,9 @@ class Page(object):
             selected = next(iter(self))
         if isinstance(selected, Row):
             form_data.update({"grp1":selected.select_id})
-        elif selected:
+        elif isinstance(select, basestring):
+            if not "/" in selected:
+                selected += "/"
             form_data.update({"grp1":selected})
         while True:
             try:
