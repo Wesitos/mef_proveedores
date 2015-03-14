@@ -59,6 +59,14 @@ class Page(object):
         self.form_data = self._set_form_data()
         self.path = path
 
+    def __unicode__(self):
+        return "Page:" + self.path
+
+    def __str__(self):
+        return unicode(self).encode("utf-8")
+
+    def __repr__(self):
+        return ('<Page path="%s">'%str(self))
 
     def _set_form_data(self):
         inputs = filter(lambda e: e.get("type") not in ("submit","radio"), self.soup.find_all("input"))
