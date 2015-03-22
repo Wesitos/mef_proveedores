@@ -94,7 +94,7 @@ class Page(object):
         historico = post_form_data["hHistorico"]
         post_form_data.update({"hHistorico": historico + '/' + ant_agrupacion if historico[-1] != ant_agrupacion else historico})
         # r = req.post(url, post_form_data)
-        kargs= {"method": "POST", "body": urlencode(form_data)}
+        kargs= {"method": "POST", "body": urlencode(post_form_data)}
         response_future = client.fetch(url, **kargs)
         path = path.strip() if path else self.path
         response = yield response_future
@@ -102,7 +102,7 @@ class Page(object):
             page = Page(response.body, post_form_data, path)
             if page.form_data != self.form_data:
                 raise gen.Return(page)
-        raise gen.Return(NoPage(r.text))
+        raise gen.Return(NoPage(response.body))
 
     def search_ruc(self, ruc):
         """Funcion para realizar busqueda por ruc"""
