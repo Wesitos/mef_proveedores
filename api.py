@@ -33,7 +33,7 @@ class RucHandler(web.RequestHandler):
     
     @gen.coroutine
     def get(self, ruc):
-        year_page = yield mef.get_by_ruc(ruc)
+        year_page, selected = yield mef.get_by_ruc(ruc)
         pliego_page_future_list = []
         for year in year_page.rows():
             pliego_page_future = year_page.get("pliego", year)
@@ -44,7 +44,10 @@ class RucHandler(web.RequestHandler):
             year = self.get_year_from_path(pliego_page.path)
             pliego_future_dict[year] = pliego_page.fetch_all()
         pliego_dict = yield pliego_future_dict
-        response_dict = {"proveedor": ruc, "pliegos": pliego_dict}
+        response_dict = {"proveedor": {"nombre": selected.nombre.split(":")[1].strip(),
+                                       "ruc": ruc,
+                                       "pliegos": pliego_dict
+                                   }}
         self.write(json.dumps(response_dict, cls=MefJSONEncoder))
 
 class CategoryHandler(web.RequestHandler):

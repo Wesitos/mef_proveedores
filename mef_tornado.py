@@ -219,5 +219,5 @@ def get_by_ruc(ruc, btn="year"):
         if filtr_nombre:
             selected = filtr_nombre[0]
             year_page = yield page.get(btn, selected)
-            raise gen.Return(year_page)
-    raise gen.Return(NoPage(page.html))
+            raise gen.Return((year_page, selected))
+    raise gen.Return((NoPage(page.html), None))
