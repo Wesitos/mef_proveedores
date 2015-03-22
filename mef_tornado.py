@@ -73,9 +73,9 @@ class Page(object):
         return {input_el.attrs["name"]:input_el.attrs.setdefault("value", None) for input_el in inputs}
 
     def rows(self):
-        """Devuelve un iterador sobre la data de la tabla"""
+        """Devuelve una lista de las filas de la tabla"""
         tabla = self.soup.find(class_="Data")
-        data = (Row(self.form_data, row) for row in tabla.find_all("tr"))
+        data = [Row(self.form_data, row) for row in tabla.find_all("tr")]
         return data
 
     @gen.coroutine
