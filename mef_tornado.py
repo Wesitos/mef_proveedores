@@ -79,16 +79,6 @@ class Page(object):
         return data
 
     @gen.coroutine
-    def next_page(self):
-        paginable = self.soup.find("input", {"name":"Pager1:BtnAdelante"})
-        if paginable:
-            form_data = {"Pager1:BtnAdelante": ">"}
-            page_future = self.navigate(form_data)
-            raise gen.Return(yield page_future)
-        else:
-            raise gen.Return(NoPage())
-
-    @gen.coroutine
     def navigate(self, form_data, path=None):
         """funcion para hacer las peticiones"""
         url = "http://apps5.mineco.gob.pe/proveedor/PageTop.aspx"
@@ -151,18 +141,43 @@ class Page(object):
                 break
         raise gen.Return(page)
 
-    def __iter__(self):
-        def iterable(self):
-            page = self
-            while True:
-                for row in page.rows():
-                    yield row
-                next_page = self.next_page()
-                if next_page:
-                    page = next_page
-                else:
-                    break
-        return iterable(self)
+    @gen.coroutine
+    def next_page(self):
+        """Devuelve la siguiente pagina. No muta al objeto"""
+        paginable = self.soup.find("input", {"name":"Pager1:BtnAdelante"})
+        if paginable:
+            form_data = {"Pager1:BtnAdelante": ">"}
+            page_future = self.navigate(form_data)
+            page = yield page_future
+            raise gen.Return(page)
+        else:
+            raise gen.Return(NoPage())
+
+    @property
+    @gen.coroutine
+    def fetch_next(self):
+        """Inspirado en Motor. Consigue la siguiente hoja de resultados.
+        Muta al objeto para realizar esto"""
+        if self.cached:
+            raise gen.Return(False)
+        next_page = yield self.next_page()
+        if next_page:
+            self.cache.extend(self.rows())
+            self.html = next_page.html
+            self.soup = next_page.soup
+            self.post_form_data = next_page.post_form_data
+            self.form_data = next_page.form_data
+            self.path = next_page.path
+            raise gen.Return(True)
+        else:
+            self.cached = True
+            raise gen.Return(False)
+
+    @gen.coroutine
+    def fetch_all(self):
+        while(yield self.fetch_next):
+            pass
+        raise gen.Return(self.cache + self.rows())
 
     def __getitem__(self, i):
         iterable = self.__iter__()
