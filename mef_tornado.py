@@ -52,12 +52,15 @@ class NoPage(object):
         return {input_el.attrs["name"]:input_el.attrs.setdefault("value", None) for input_el in inputs}
 
 class Page(object):
+    url = "http://apps5.mineco.gob.pe/proveedor/PageTop.aspx"
     def __init__(self, html, post_form_data=None, path="/home"):
         self.html = html
         self.soup = BeautifulSoup(html)
         self.post_form_data = post_form_data or {}
         self.form_data = self._set_form_data()
         self.path = path
+        self.cache = []
+        self.cached = False
 
     def __unicode__(self):
         return "Page:" + self.path
@@ -81,7 +84,7 @@ class Page(object):
     @gen.coroutine
     def navigate(self, form_data, path=None):
         """funcion para hacer las peticiones"""
-        url = "http://apps5.mineco.gob.pe/proveedor/PageTop.aspx"
+        url = self.url
         client = AsyncHTTPClient()
         if not self.form_data:
             response = yield client.fetch(url)
