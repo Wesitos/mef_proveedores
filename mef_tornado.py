@@ -93,9 +93,9 @@ class Page(object):
         # Form_data de peticion
         post_form_data = self.form_data.copy()
         post_form_data.update(form_data)
-        ant_agrupacion = post_form_data["hAntAgrupacion"]
-        historico = post_form_data["hHistorico"]
-        post_form_data.update({"hHistorico": historico + '/' + ant_agrupacion if historico[-1] != ant_agrupacion else historico})
+        #ant_agrupacion = post_form_data["hAntAgrupacion"]
+        #historico = post_form_data["hHistorico"]
+        #post_form_data.update({"hHistorico": historico + '/' + ant_agrupacion if historico[-1] != ant_agrupacion else historico})
         # r = req.post(url, post_form_data)
         kargs= {"method": "POST", "body": urlencode(post_form_data)}
         response_future = client.fetch(url, **kargs)
