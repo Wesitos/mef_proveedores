@@ -90,10 +90,6 @@ class Page(object):
         """funcion para hacer las peticiones"""
         url = self.url
         client = AsyncHTTPClient()
-        if not self.form_data:
-            response = yield client.fetch(url)
-            raise gen.Return(response.body)
-        # Else
         # Form_data de peticion
         post_form_data = self.form_data.copy()
         post_form_data.update(form_data)
