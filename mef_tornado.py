@@ -192,3 +192,11 @@ class Page(object):
             except StopIteration:
                 raise IndexError
         return item
+
+@gen.coroutine
+def HomePage():
+    client = AsyncHTTPClient()
+    response = yield client.fetch(Page.url)
+    home_page = Page(response.body, path="/home")
+    raise gen.Return(home_page)
+
