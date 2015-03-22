@@ -51,6 +51,10 @@ class NoPage(object):
         inputs = filter(lambda e: e.get("type") not in ("submit","radio"), self.soup.find_all("input"))
         return {input_el.attrs["name"]:input_el.attrs.setdefault("value", None) for input_el in inputs}
 
+    @gen.coroutine
+    def fetch_all(self):
+        raise gen.Return(None)
+
 class Page(object):
     url = "http://apps5.mineco.gob.pe/proveedor/PageTop.aspx"
     def __init__(self, html, post_form_data=None, path="/home"):
@@ -122,6 +126,8 @@ class Page(object):
         """Ayuda a navegar en el buscador de proveedores"""
         lista_names = [ "home", "year", "gobierno", "sector", "pliego", "municipio",
                         "departamento", "provincia", "distrito", "proveedor"]
+        if group_name not in lista_names:
+            raise gen.Return(NoPage())
         form_data = {"hAgrupacion": str(lista_names.index(group_name)), "hPostedBy": str(1)}
         if not selected:
             selected = self.rows()[0]
