@@ -104,13 +104,15 @@ class Page(object):
                 raise gen.Return(page)
         raise gen.Return(NoPage(response.body))
 
+    @gen.coroutine
     def search_ruc(self, ruc):
         """Funcion para realizar busqueda por ruc"""
         form_data = {
             "__EVENTTARGET": "BtnBuscarRUC",
             "TxtBuscar": ruc,
         }
-        return self.navigate(form_data)
+        page = yield self.navigate(form_data)
+        raise gen.Return(page)
 
     @gen.coroutine
     def get(self, group_name, selected=None):
