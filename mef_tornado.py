@@ -200,3 +200,18 @@ def HomePage():
     home_page = Page(response.body, path="/home")
     raise gen.Return(home_page)
 
+@gen.coroutine
+def get_by_ruc(ruc, btn="year"):
+    home = yield HomePage()
+    prov_page = yield home.get("proveedor")
+    page = yield prov_page.search_ruc(ruc)
+    # Verifica si la pagina es valida
+    if page:
+        rows = page.rows()
+        filtr_nombre = [row for row in rows if ruc in row.nombre]
+        # Verifica si hay resultados
+        if filtr_nombre:
+            selected = filtr_nombre[0]
+            year_page = yield page.get(btn, selected)
+            raise gen.Return(year_page)
+    raise gen.Return(NoPage(page.html))
