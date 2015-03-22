@@ -119,7 +119,7 @@ class Page(object):
                         "departamento", "provincia", "distrito", "proveedor"]
         form_data = {"hAgrupacion": str(lista_names.index(group_name)), "hPostedBy": str(1)}
         if not selected:
-            selected = next(iter(self))
+            selected = self.rows()[0]
         if isinstance(selected, Row):
             selected = selected.select_id
         elif isinstance(select, basestring):
