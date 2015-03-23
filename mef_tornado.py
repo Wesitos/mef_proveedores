@@ -59,7 +59,8 @@ class Page(object):
     url = "http://apps5.mineco.gob.pe/proveedor/PageTop.aspx"
     def __init__(self, html, post_form_data=None, path="/home"):
         self.html = html
-        self.soup = BeautifulSoup(html)
+        # El html no esta bien construido
+        self.soup = BeautifulSoup(html, "html5lib")
         self.post_form_data = post_form_data or {}
         self.form_data = self._set_form_data()
         self.path = path
