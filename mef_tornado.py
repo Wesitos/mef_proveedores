@@ -9,11 +9,6 @@ import logging
 import time
 
 logger = logging.getLogger("mef")
-logger.handlers = []
-fhandler = logging.FileHandler(filename='mef_proveedores.log', mode='a')
-formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
-fhandler.setFormatter(formatter)
-logger.addHandler(fhandler)
 logger.setLevel(logging.INFO)
 
 class Row(object):
