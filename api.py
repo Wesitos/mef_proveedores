@@ -1,12 +1,17 @@
 from __future__ import print_function
 from tornado import gen, web, ioloop, httpserver
-from tornado.options import define, options
+from tornado.options import define, options, parse_command_line
 import json
 import mef_tornado as mef
 import re, os
 
 define("port", default=8888, help="run on the given port", type=int)
 define("production", default=False, help="true if is a production server", type=bool)
+
+try:
+    parse_command_line()
+except:
+    pass
 
 class MefJSONEncoder(json.JSONEncoder):
     def default(self, obj):
