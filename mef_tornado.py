@@ -93,15 +93,29 @@ class Page(object):
         #historico = post_form_data["hHistorico"]
         #post_form_data.update({"hHistorico": historico + '/' + ant_agrupacion if historico[-1] != ant_agrupacion else historico})
         # r = req.post(url, post_form_data)
-        kargs= {"method": "POST", "body": urlencode(post_form_data)}
-        response_future = client.fetch(url, **kargs)
+        kargs= {"method": "POST",
+                "body": urlencode(post_form_data),
+                "raise_error": False,
+                "request_timeout": 2,
+        }
         path = path.strip() if path else self.path
-        response = yield response_future
-        if not response.error:
-            page = Page(response.body, post_form_data, path)
-            if page.form_data != self.form_data:
-                raise gen.Return(page)
-        raise gen.Return(NoPage(response.body))
+        while True:
+            response_future = client.fetch(url, **kargs)
+            response = yield response_future
+            print("Respuesta conseguida con codigo:", response.code)
+            if not response.error:
+                page = Page(response.body, post_form_data, path)
+                if page.form_data != self.form_data:
+                    raise gen.Return(page)
+                else:
+                    raise gen.Return(NoPage(response.body))
+            elif response.code == 500:
+                raise gen.Return(NoPage(response.body))
+            elif response.code == 599:
+                yield gen.sleep(0.2)
+                continue
+            else:
+                response.rethrow()
 
     @gen.coroutine
     def search_ruc(self, ruc):
@@ -132,16 +146,8 @@ class Page(object):
         selected_id = selected.split("/")[0].strip()
         params = ":" + selected_id if selected_id else ""
         path = self.path + params + '/' + group_name
-        while True:
-            page_future = self.navigate(form_data, path)
-            page = yield page_future
-            excpt = page_future.exception()
-            if excpt is not None:
-                logger.exception(str(excpt))
-                yield gen.sleep(0.1)
-                continue
-            else:
-                break
+        page_future = self.navigate(form_data, path)
+        page = yield page_future
         raise gen.Return(page)
 
     @gen.coroutine
