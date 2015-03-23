@@ -26,12 +26,17 @@ class IndexHandler(web.RequestHandler):
     def get(self):
         self.render("index.html")
 
-class RucHandler(web.RequestHandler):
+class ApiBaseHandler(web.RequestHandler):
     def set_headers(self):
         self.set_header("Content-Type", "application/json; charset=utf-8")
 
+    def on_connection_close(self):
+        # Esto no termina las llamadas asyncronas a get
+        raise Exception("Conexion cerrada por el cliente")
+        self.finish()
+
+class RucHandler(ApiBaseHandler):
     def get_year_from_path(self, path):
-        print("Page path:", path)
         regexp = re.compile("/year:(?P<year>\d+)")
         match = regexp.search(path)
         return match.group("year")
@@ -55,10 +60,7 @@ class RucHandler(web.RequestHandler):
                                    }}
         self.write(json.dumps(response_dict, cls=MefJSONEncoder))
 
-class CategoryHandler(web.RequestHandler):
-    def set_headers(self):
-        self.set_header("Content-Type", "application/json; charset=utf-8")
-
+class CategoryHandler(ApiBaseHandler):
     @gen.coroutine
     def get(self, categoria):
         home = yield mef.HomePage()
@@ -67,10 +69,7 @@ class CategoryHandler(web.RequestHandler):
         response_dict = {"category": categoria, "result": list_results}
         self.write(json.dumps(response_dict, cls=MefJSONEncoder))
 
-class HomeHandler(web.RequestHandler):
-    def set_headers(self):
-        self.set_header("Content-Type", "application/json; charset=utf-8")
-
+class HomeHandler(ApiBaseHandler):
     @gen.coroutine
     def get(self):
         home = yield mef.HomePage()
