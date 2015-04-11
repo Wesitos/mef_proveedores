@@ -118,6 +118,7 @@ mef_app = web.Application(handlers, **settings)
 def deploy_server():
     http_server = httpserver.HTTPServer(mef_app)
     http_server.listen(options.port)
+    print("Server Listening in port: %d"%options.port)
     ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":
