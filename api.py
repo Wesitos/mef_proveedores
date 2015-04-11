@@ -40,25 +40,50 @@ class RucHandler(ApiBaseHandler):
         regexp = re.compile("/year:(?P<year>\d+)")
         match = regexp.search(path)
         return match.group("year")
-    
+
+    def get_row_dict(self, tipo, row):
+        return {
+            "tipo": tipo,
+            "nombre": row.label,
+            "monto": row.monto,
+            "children": [],
+        }
+
     @gen.coroutine
     def get(self, ruc):
-        year_page, selected = yield mef.get_by_ruc(ruc)
-        pliego_page_future_list = []
-        for year in year_page.rows():
-            pliego_page_future = year_page.get("pliego", year)
-            pliego_page_future_list.append(pliego_page_future)
-        pliego_page_list = yield pliego_page_future_list
-        pliego_future_dict = {}
-        for pliego_page in pliego_page_list:
-            year = self.get_year_from_path(pliego_page.path)
-            pliego_future_dict[year] = pliego_page.fetch_all()
-        pliego_dict = yield pliego_future_dict
-        response_dict = {"proveedor": {"nombre": selected.nombre.split(":")[1].strip(),
-                                       "ruc": ruc,
-                                       "pliegos": pliego_dict
-                                   }}
-        self.write(json.dumps(response_dict, cls=MefJSONEncoder))
+        if len(ruc)!=11:
+            self.send_error(400)
+        year_page, prov_selected = yield mef.get_by_ruc(ruc)
+        if not year_page:
+            self.send_error(400)
+
+        prov_dict = self.get_row_dict("proveedor", prov_selected)
+        for year in (yield year_page.fetch_all()):
+            year_dict = self.get_row_dict("year", year)
+            prov_dict["children"].append(year_dict)
+            gob_page = yield year_page.get("gobierno", year)
+
+            for gob in (yield gob_page.fetch_all()):
+                gob_dict = self.get_row_dict("gobierno", gob)
+                year_dict["children"].append(gob_dict)
+                sector_page = yield gob_page.get("sector", gob)
+
+                for sector in (yield sector_page.fetch_all()):
+                    sector_dict = self.get_row_dict("sector", sector)
+                    gob_dict["children"].append(sector_dict)
+                    municipio_page = yield sector_page.get("municipio", sector)
+
+                    for municipio in (yield municipio_page.fetch_all()):
+                        municipio_dict = self.get_row_dict("municipio", municipio)
+                        sector_dict["children"].append(municipio_dict)
+                        pliego_page = yield municipio_page.get("pliego", municipio)
+
+                        for pliego in (yield pliego_page.fetch_all()):
+                            pliego_dict = self.get_row_dict("pliego", pliego)
+                            municipio_dict["children"].append(pliego_dict)
+
+        self.write(json.dumps(prov_dict))
+
 
 class CategoryHandler(ApiBaseHandler):
     @gen.coroutine

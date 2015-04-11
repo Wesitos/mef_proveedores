@@ -18,6 +18,7 @@ class Row(object):
         self.nombre = cells[1].text.strip()
         self.monto = float(cells[2].text.replace(',',''))
         self.form_data = form_data
+        self.label = unicode(self)
 
     def __repr__(self):
         return ('<Row nombre="%s">'%str(self))
